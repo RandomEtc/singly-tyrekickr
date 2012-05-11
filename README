@@ -1,0 +1,16 @@
+This is a node.js/express app for kicking the tyres on Singly's API.
+
+Mostly cribbed from https://github.com/beaugunderson/vacatio
+
+Everything is in env vars, Heroku style.
+
+You need:
+
+    SERVER_URL=http://yourapp.example.com
+    SINGLY_API_URL=https://api.singly.com
+    SINGLY_CLIENT_ID=XXXXX
+    SINGLY_CLIENT_SECRET=XXXXX
+    SESSION_SECRET=randomnoise
+    REDISTOGO_URL=yourredissettings
+
+You can get the Singly bits from http://dev.singly.com/
