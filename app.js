@@ -8,6 +8,9 @@ var express = require('express'),
 
 var serverUrl = process.env.SERVER_URL;
 
+var singlyUrl = process.env.SINGLY_API_URL || 'https://api.singly.com',
+    singlyClientId = process.env.SINGLY_CLIENT_ID;
+
 var redisUrl = url.parse(process.env.REDISTOGO_URL),
     redisOptions = {
         port: redisUrl.port,
@@ -42,10 +45,8 @@ app.configure('production', function() {
 });
 
 function makeAuthLink(service) {
-    var singlyUrl = process.env.SINGLY_API_URL || 'https://api.singly.com',
-        client_id = process.env.SINGLY_CLIENT_ID;
     return singlyUrl + "/oauth/authorize?"+
-            "client_id="+client_id+"&"+
+            "client_id="+singlyClientId+"&"+
             "redirect_uri="+serverUrl+"/auth/singly"+"&"+
             "service="+service;
 }
@@ -69,7 +70,7 @@ app.get('/auth/singly', function(req, res) {
     // TODO: check for presence of code/id/secret
 
     var params = {
-        uri: hostUrl + '/oauth/access_token',
+        uri: singlyUrl + '/oauth/access_token',
         body: querystring.stringify(data),
         headers: {
          'Content-Type': 'application/x-www-form-urlencoded'
