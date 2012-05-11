@@ -3,6 +3,7 @@
 var express = require('express'),
     request = require('request'),
     url = require('url'),
+    querystring = require('querystring'),
     RedisStore = require('connect-redis')(express),
     singly = require('./singly');
 
@@ -45,10 +46,12 @@ app.configure('production', function() {
 });
 
 function makeAuthLink(service) {
-    return singlyUrl + "/oauth/authorize?"+
-            "client_id="+singlyClientId+"&"+
-            "redirect_uri="+serverUrl+"/auth/singly"+"&"+
-            "service="+service;
+    var data = {
+        client_id: singlyClientId,
+        redirect_uri: serverUrl + "/auth/singly",
+        service: service
+    };
+    return singlyUrl + "/oauth/authorize?"+querystring.stringify(data);
 }
 
 app.get('/', function(req, res){
