@@ -1,15 +1,14 @@
-// from https://github.com/beaugunderson/vacatio/blob/master/singly.js
 
 var OAuth2 = require('oauth').OAuth2;
 
-var baseUrl = 'https://carealot.singly.com';
+var baseUrl = process.env.SINGLY_API_URL || 'https://api.singly.com';
 
-var oa = new OAuth2('vacat.io', 'SECRET_HERE', baseUrl);
+var oa = new OAuth2(process.env.SINGLY_CLIENT_ID, process.env.SINGLY_CLIENT_SECRET, baseUrl);
 
 exports.getOAuthAccessToken = function(code, options, callback) {
    oa.getOAuthAccessToken(code, {}, callback);
 };
 
-exports.getProtectedResource = function(path, session, callback) {
-   oa.getProtectedResource(baseUrl + path, session.access_token, callback);
+exports.getProtectedResource = function(path, access_token, callback) {
+   oa.getProtectedResource(baseUrl + path, access_token, callback);
 }

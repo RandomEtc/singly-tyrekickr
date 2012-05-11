@@ -6,6 +6,8 @@ var express = require('express'),
     RedisStore = require('connect-redis')(express),
     singly = require('./singly');
 
+var serverUrl = process.env.SERVER_URL;
+
 var redisUrl = url.parse(process.env.REDISTOGO_URL),
     redisOptions = {
         port: redisUrl.port,
@@ -39,8 +41,21 @@ app.configure('production', function() {
    app.use(express.errorHandler());
 });
 
+function makeAuthLink(service) {
+    var singlyUrl = process.env.SINGLY_API_URL || 'https://api.singly.com',
+        client_id = process.env.SINGLY_CLIENT_ID;
+    return singlyUrl + "/oauth/authorize?"+
+            "client_id="+client_id+"&"+
+            "redirect_uri="+serverUrl+"/auth/singly"+"&"+
+            "service="+service;
+}
+
 app.get('/', function(req, res){
-    res.send('Hello World');
+    if (req.session.profiles) {
+        res.send(JSON.stringify(req.session.profiles));
+    } else {
+        res.send('Hello World');
+    }
 });
 
 app.get('/auth/singly', function(req, res) {
@@ -61,21 +76,19 @@ app.get('/auth/singly', function(req, res) {
         }
     };
 
+    // TODO: use the OAuth lib for this? or comment why not ;)
     request.post(params, function (err, resp, body) {
-
-        // find the access token...
-
         try {
             body = JSON.parse(body);
         } catch(parseErr) {
-            return res.send(parseErr, 500);
+            return callback(parseErr);
         }
 
         req.session.access_token = body.access_token;
 
         // pull down the profile and see how we're doing...
 
-        singly.getProtectedResource('/profiles', req.session, function(err, profilesBody) {
+        singly.getProtectedResource('/profiles', req.session.access_token, function(err, profilesBody) {
             try {
                 profilesBody = JSON.parse(profilesBody);
             } catch(parseErr) {
