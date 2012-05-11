@@ -54,7 +54,7 @@ app.get('/', function(req, res){
     if (req.session.profiles) {
         res.send(JSON.stringify(req.session.profiles));
     } else {
-        res.send('Hello World');
+        res.send('<a href="'+makeAuthLink('facebook')+'">log in with singly/facebook</a>');
     }
 });
 
