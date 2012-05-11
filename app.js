@@ -62,6 +62,16 @@ app.get('/', function(req, res){
     }
 });
 
+app.get('/logout', function(req, res){
+    req.session.destroy(function(err,rsp) {
+        if (err) {
+            res.send("problem destroying session", 500);
+        } else {
+            res.redirect('/')
+        }
+    })
+});
+
 app.get('/auth/singly', function(req, res) {
 
     var data = {
