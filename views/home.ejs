@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><title>Tyrekickr</title></head>
+<body>
+<h1>Tyrekickr.</h1>
+<% if (activeServices.length > 0) { %>
+<p>Logged in with: <%=activeServices.join(', ') %>.</p>
+<p><a href="/logout">logout</a>?</p>
+<% } %>
+<% if (inactiveServices.length > 0)
+<p>You can log in with: <% inactiveServices.forEach(function(service) { %>
+   <a href="<%=makeAuthLink(service)%>">log in with <%=service%></a>
+<% }); %>
+</p>
+<% } %>
+</body>
+</html>

@@ -7,6 +7,15 @@ var express = require('express'),
     RedisStore = require('connect-redis')(express),
     singly = require('./singly');
 
+var services = [
+    'facebook',
+    'foursquare',
+    'twitter',
+    'instagram',
+    'tumblr',
+    'linkedin'
+];
+
 var serverUrl = process.env.SERVER_URL;
 
 var singlyUrl = process.env.SINGLY_API_URL || 'https://api.singly.com',
@@ -45,21 +54,36 @@ app.configure('production', function() {
    app.use(express.errorHandler());
 });
 
-function makeAuthLink(service) {
-    var data = {
-        client_id: singlyClientId,
-        redirect_uri: serverUrl + "/auth/singly",
-        service: service
-    };
-    return singlyUrl + "/oauth/authorize?"+querystring.stringify(data);
-}
+app.helpers({
+    makeAuthLink: function(service){
+        var data = {
+            client_id: singlyClientId,
+            redirect_uri: serverUrl + "/auth/singly",
+            service: service
+        };
+        return singlyUrl + "/oauth/authorize?"+querystring.stringify(data);
+    }
+});
+
+app.dynamicHelpers({
+    loggedIn: function(req, res) {
+        return req.session.profiles && req.session.profiles.id;
+    },
+    activeServices: function(req, res){
+        return services.filter(function(service) { return req.session.profiles && (service in req.session.profiles); })
+    },
+    inactiveServices: function(req, res){
+        return services.filter(function(service) { return !req.session.profiles || !(service in req.session.profiles); })
+    }
+});
 
 app.get('/', function(req, res){
-    if (req.session.profiles) {
-        res.send(JSON.stringify(req.session.profiles));
-    } else {
-        res.send('<a href="'+makeAuthLink('facebook')+'">log in with singly/facebook</a>');
-    }
+    res.render('home', {
+        layout: true
+        locals: {
+
+        }
+    });
 });
 
 app.get('/logout', function(req, res){
