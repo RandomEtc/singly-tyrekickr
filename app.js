@@ -86,6 +86,27 @@ app.get('/', function(req, res){
     });
 });
 
+app.get('/photos', function(req, res){
+    if (req.session.access_token) {
+        singly.getProtectedResource('/types/photos', req.session.access_token, function(err, photosBody) {
+            try {
+                photosBody = JSON.parse(photosBody);
+            } catch(parseErr) {
+                return res.send(parseErr, 500);
+            }
+            console.dir(photosBody);
+            res.render('photos', {
+                layout: false,
+                locals: {
+                    data: photosBody
+                }
+            });
+        });
+    } else {
+        res.redirect('/');
+    }
+});
+
 app.get('/logout', function(req, res){
     req.session.destroy(function(err,rsp) {
         if (err) {

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>Tyrekickr</title></head>
+<body>
+<h1>Tyrekickr.</h1>
+<p>Showing photos from: <%=activeServices.join(', ') %>.</p>
+<ul><% data.forEach(function(item) { %>
+    <li><%-partial('photos/'+item.idr.match(/\w+\:\w+\@(\w+)\/\w+\#\w+/)[1], { locals: { item: item } })%></li>
+<% }); %></ul>
+<p>You can <a href="/">go back home</a>. Or would you rather <a href="/logout">logout</a>?</p>
+</body>
+</html>
