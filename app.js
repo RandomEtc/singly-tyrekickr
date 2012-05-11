@@ -98,6 +98,29 @@ app.get('/photos', function(req, res){
             res.render('photos', {
                 layout: false,
                 locals: {
+                    whose: "your",
+                    data: photosBody
+                }
+            });
+        });
+    } else {
+        res.redirect('/');
+    }
+});
+
+app.get('/photos_feed', function(req, res){
+    if (req.session.access_token) {
+        singly.getProtectedResource('/types/photos_feed', req.session.access_token, function(err, photosBody) {
+            try {
+                photosBody = JSON.parse(photosBody);
+            } catch(parseErr) {
+                return res.send(parseErr, 500);
+            }
+            console.dir(photosBody);
+            res.render('photos', {
+                layout: false,
+                locals: {
+                    whose: "everyone's",
                     data: photosBody
                 }
             });

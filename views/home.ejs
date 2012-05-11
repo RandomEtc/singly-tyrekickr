@@ -5,7 +5,7 @@
 <h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
 <% if (activeServices.length > 0) { %>
 <p>Logged in with: <%=activeServices.join(', ') %>.</p>
-<p>There are <a href="/photos">photos</a>. Or would you rather <a href="/logout">logout</a>?</p>
+<p>There are <a href="/photos">photos from you</a> and <a href="/photos_feed">photos from everyone</a> . Or would you rather <a href="/logout">logout</a>?</p>
 <% } %>
 <% if (inactiveServices.length > 0) { %>
 <p>You can log in with: <% inactiveServices.forEach(function(service) { %>

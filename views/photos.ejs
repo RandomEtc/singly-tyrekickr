@@ -3,7 +3,7 @@
 <head><title>Tyrekickr</title></head>
 <body>
 <h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
-<p>Showing photos from: <%=activeServices.join(', ') %>.</p>
+<p>Showing <em><%=whose%></em> photos from: <%=activeServices.join(', ') %>.</p>
 <ul><% data.forEach(function(item) { %>
     <li><%-partial('photos/'+item.idr.match(/\w+\:\w+\@(\w+)\/\w+\#\w+/)[1], { locals: { item: item } })%></li>
 <% }); %></ul>
