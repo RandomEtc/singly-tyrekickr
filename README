@@ -4,7 +4,7 @@ Mostly cribbed from https://github.com/beaugunderson/vacatio
 
 Everything is in env vars, Heroku style.
 
-You need:
+You need the following settings in a `.env` file to run locally:
 
     SERVER_URL=http://yourapp.example.com
     SINGLY_API_URL=https://api.singly.com
@@ -13,4 +13,9 @@ You need:
     SESSION_SECRET=randomnoise
     REDISTOGO_URL=yourredissettings
 
-You can get the Singly bits from http://dev.singly.com/
+For Heroku, leave off the REDISTOGO_URL and enable the redistogo addon instead:
+
+    heroku addons:add redistogo
+
+You can get the Singly credentials from http://dev.singly.com/
+
