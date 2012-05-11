@@ -79,7 +79,7 @@ app.dynamicHelpers({
 
 app.get('/', function(req, res){
     res.render('home', {
-        layout: true,
+        layout: false,
         locals: {
 
         }

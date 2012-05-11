@@ -7,11 +7,10 @@
 <p>Logged in with: <%=activeServices.join(', ') %>.</p>
 <p><a href="/logout">logout</a>?</p>
 <% } %>
-<% if (inactiveServices.length > 0)
+<% if (inactiveServices.length > 0) { %>
 <p>You can log in with: <% inactiveServices.forEach(function(service) { %>
-   <a href="<%=makeAuthLink(service)%>">log in with <%=service%></a>
-<% }); %>
-</p>
+   <a href="<%=makeAuthLink(service)%>"><%=service%></a>
+<% }); %></p>
 <% } %>
 </body>
 </html>
