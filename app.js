@@ -87,7 +87,7 @@ app.get('/', function(req, res){
     });
 });
 
-app.get('/photos_feed', function(req, res){
+app.get('/photos', function(req, res){
     if (req.session.access_token) {
         var page = Math.max(1, parseInt(req.param('page'),10) || 1),
             limit = 20,
