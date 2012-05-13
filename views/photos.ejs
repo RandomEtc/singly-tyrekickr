@@ -2,16 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Tyrekickr</title>
+  <title>Tyrekickr | Photos</title>
+  <style>
+  .item img { border:0; padding: 0 0 10px 0; margin: 0; display: block; }
+  .item { border:0; padding: 0; margin: 0; display: block; }
+ /* Infinite Scroll loader */
+  #infscr-loading {
+    text-align: center;
+    z-index: 100;
+    position: fixed;
+    left: 45%;
+    bottom: 40px;
+    width: 200px;
+    padding: 10px;
+    background: #000;
+    opacity: 0.8;
+    color: #FFF;
+    -webkit-border-radius: 10px;
+       -moz-border-radius: 10px;
+            border-radius: 10px;
+  }
+  </style>
 </head>
   <body>
     <h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
     <p>You can <a href="/">go back home</a>. Or would you rather <a href="/logout">logout</a>?</p>
     <p>Showing <em><%=whose%></em> photos from: <%=activeServices.join(', ') %>.</p>
-    <div id="container">
-    <% data.forEach(function(item) { %>
-      <img class="item" src="<%=item.oembed.url%>" width="<%=item.oembed.width%>" height="<%=item.oembed.height%>">
-    <% }); %></ul>
-    </div>
+    <div id="container"><% data.forEach(function(item) { %>
+      <div class="item"><img data-at="<%=item.at%>" src="<%=item.oembed.url%>" width="300" height="<%=300*item.oembed.height/item.oembed.width%>"></div>
+    <% }); %></div>
+    <nav id="page-nav">
+      <% if (page > 1) { %><a id="prev" href="<%=currentHref+'?page='+(page-1)%>">Prev Page</a> | <% } %>
+      <% if (data.length > 0) { %><a id="next" href="<%=currentHref+'?page='+(page+1)%>">Next Page</a><% } %>
+    </nav>
+    <script src="/js/jquery-1.7.1.min.js"></script>
+    <script src="/js/jquery.masonry.min.js"></script>
+    <script src="/js/jquery.infinitescroll.min.js"></script>
+    <script>
+      $(function(){
+
+        var $container = $('#container');
+
+        $container.imagesLoaded(function(){
+          $container.masonry({
+            itemSelector: 'div.item',
+            columnWidth: 310
+          });
+        });
+
+        $container.find('img').each(function(){
+          $(this).attr('title', new Date($(this).data('at')).toString());
+        });
+
+        $container.infinitescroll({
+          navSelector  : '#page-nav',    // selector for the paged navigation
+          nextSelector : '#next',        // selector for the NEXT link (to page 2)
+          itemSelector : 'div.item',     // selector for all items you'll retrieve
+          debug: true,
+          loading: {
+            finishedMsg: "That's it!",
+            img: '/img/spinner.gif',
+            msgText: "Loading more images..."
+          },
+        },
+          // trigger Masonry as a callback
+          function( newElements ) {
+            // hide new items while they are loading
+            var $newElems = $( newElements ).css({ opacity: 0 });
+            // ensure that images load before adding to masonry layout
+            $newElems.imagesLoaded(function(){
+              // show elems now they're ready
+              $newElems.animate({ opacity: 1 });
+              $container.masonry( 'appended', $newElems, true );
+            });
+          }
+        );
+
+      });
+    </script>
   </body>
 </html>

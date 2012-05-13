@@ -87,22 +87,30 @@ app.get('/', function(req, res){
     });
 });
 
-app.get('/photos', function(req, res){
+app.get('/photos_feed', function(req, res){
     if (req.session.access_token) {
-        singly.getProtectedResource('/types/photos', req.session.access_token, function(err, photosBody) {
+        var page = Math.max(1, parseInt(req.param('page'),10) || 1),
+            limit = 20,
+            params = '?'+querystring.stringify({ limit: limit, offset: limit * (page-1) });
+        singly.getProtectedResource('/types/photos'+params, req.session.access_token, function(err, photosBody) {
             try {
                 photosBody = JSON.parse(photosBody);
             } catch(parseErr) {
                 return res.send(parseErr, 500);
             }
-            // console.dir(photosBody);
-            res.render('photos', {
-                layout: false,
-                locals: {
-                    whose: "your",
-                    data: photosBody
-                }
-            });
+            if (photosBody.length) {
+                res.render('photos', {
+                    layout: false,
+                    locals: {
+                        whose: "your",
+                        data: photosBody,
+                        page: page,
+                        currentHref: '/photos'
+                    }
+                });
+            } else {
+                res.send("No more!", 404)
+            }
         });
     } else {
         res.redirect('/');
@@ -111,20 +119,28 @@ app.get('/photos', function(req, res){
 
 app.get('/photos_feed', function(req, res){
     if (req.session.access_token) {
-        singly.getProtectedResource('/types/photos_feed', req.session.access_token, function(err, photosBody) {
+        var page = Math.max(1, parseInt(req.param('page'),10) || 1),
+            limit = 20,
+            params = '?'+querystring.stringify({ limit: limit, offset: limit * (page-1) });
+        singly.getProtectedResource('/types/photos_feed'+params, req.session.access_token, function(err, photosBody) {
             try {
                 photosBody = JSON.parse(photosBody);
             } catch(parseErr) {
                 return res.send(parseErr, 500);
             }
-            // console.dir(photosBody);
-            res.render('photos', {
-                layout: false,
-                locals: {
-                    whose: "everyone's",
-                    data: photosBody
-                }
-            });
+            if (photosBody.length) {
+                res.render('photos', {
+                    layout: false,
+                    locals: {
+                        whose: "everyone's",
+                        data: photosBody,
+                        page: page,
+                        currentHref: '/photos_feed'
+                    }
+                });
+            } else {
+                res.send("No more!", 404)
+            }
         });
     } else {
         res.redirect('/');
