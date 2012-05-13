@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html>
-<head><title>Tyrekickr</title></head>
-<body>
-<h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
-<% if (activeServices.length > 0) { %>
-<p>Logged in with: <%=activeServices.join(', ') %>.</p>
-<p>There are <a href="/photos">photos from you</a> and <a href="/photos_feed">photos from everyone</a> . Or would you rather <a href="/logout">logout</a>?</p>
-<% } %>
-<% if (inactiveServices.length > 0) { %>
-<p>You can log in with: <% inactiveServices.forEach(function(service) { %>
-   <a href="<%=makeAuthLink(service)%>"><%=service%></a>
-<% }); %></p>
-<% } %>
-</body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Tyrekickr | Photos</title>
+</head>
+  <body>
+    <h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
+    <% if (activeServices.length > 0) { %>
+    <p>Logged in with: <%=activeServices.join(', ') %>.</p>
+    <p>There are <a href="/photos">photos from you</a> and <a href="/photos_feed">photos from everyone</a> . Or would you rather <a href="/logout">logout</a>?</p>
+    <% } %>
+    <% if (inactiveServices.length > 0) { %>
+    <p>You can log in with: <% inactiveServices.forEach(function(service) { %>
+       <a href="<%=makeAuthLink(service)%>"><%=service%></a>
+    <% }); %></p>
+    <% } %>
+  </body>
 </html>

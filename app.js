@@ -7,6 +7,7 @@ var express = require('express'),
     RedisStore = require('connect-redis')(express),
     singly = require('./singly');
 
+// TODO: can these be fetched from Singly API using my client_id?
 var services = [
     'facebook',
     'foursquare',
@@ -94,7 +95,7 @@ app.get('/photos', function(req, res){
             } catch(parseErr) {
                 return res.send(parseErr, 500);
             }
-            console.dir(photosBody);
+            // console.dir(photosBody);
             res.render('photos', {
                 layout: false,
                 locals: {
@@ -116,7 +117,7 @@ app.get('/photos_feed', function(req, res){
             } catch(parseErr) {
                 return res.send(parseErr, 500);
             }
-            console.dir(photosBody);
+            // console.dir(photosBody);
             res.render('photos', {
                 layout: false,
                 locals: {

@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html>
-<head><title>Tyrekickr</title></head>
-<body>
-<h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
-<p>Showing <em><%=whose%></em> photos from: <%=activeServices.join(', ') %>.</p>
-<ul><% data.forEach(function(item) { %>
-    <li><%-partial('photos/'+item.idr.match(/\w+\:\w+\@(\w+)\/\w+\#\w+/)[1], { locals: { item: item } })%></li>
-<% }); %></ul>
-<p>You can <a href="/">go back home</a>. Or would you rather <a href="/logout">logout</a>?</p>
-</body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Tyrekickr</title>
+</head>
+  <body>
+    <h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
+    <p>You can <a href="/">go back home</a>. Or would you rather <a href="/logout">logout</a>?</p>
+    <p>Showing <em><%=whose%></em> photos from: <%=activeServices.join(', ') %>.</p>
+    <div id="container">
+    <% data.forEach(function(item) { %>
+      <img class="item" src="<%=item.oembed.url%>" width="<%=item.oembed.width%>" height="<%=item.oembed.height%>">
+    <% }); %></ul>
+    </div>
+  </body>
 </html>
