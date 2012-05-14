@@ -5,15 +5,14 @@
   <title>Tyrekickr</title>
 </head>
   <body>
-    <h1>Tyrekickr. <small>having a look at the Singly API</small></h1>
-    <% if (activeServices.length > 0) { %>
-    <p>Logged in with: <%=activeServices.join(', ') %>.</p>
+    <h1>Tyrekickr. <small>having a look at the <a href="http://dev.singly.com/">Singly API</a></small></h1>
+    <% if (loggedIn) { %>
+    <p>Logged in with: <%-grammaticalJoin(activeServices.map(getDisplayName)) %>.</p>
     <p>There are <a href="/photos">photos from you</a> and <a href="/photos_feed">photos from everyone</a> . Or would you rather <a href="/logout">logout</a>?</p>
     <% } %>
     <% if (inactiveServices.length > 0) { %>
-    <p>You can log in with: <% inactiveServices.forEach(function(service) { %>
-       <a href="<%=makeAuthLink(service)%>"><%=service%></a>
-    <% }); %></p>
+    <p>You can <% if (loggedIn) { %>also <% } %>log in with: <%-grammaticalJoin(inactiveServices.map(makeAuthLink), ', ', ' or ')%></p>
     <% } %>
+    <a href="https://github.com/randometc/singly-tyrekickr"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
   </body>
 </html>

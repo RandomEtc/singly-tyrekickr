@@ -1,27 +1,44 @@
 "use strict";
 
 var express = require('express'),
-    request = require('request'),
     url = require('url'),
     querystring = require('querystring'),
     RedisStore = require('connect-redis')(express),
-    singly = require('./singly');
-
-// TODO: can these be fetched from Singly API using my client_id?
-var services = [
-    'facebook',
-    'foursquare',
-    'twitter',
-    'instagram',
-    'tumblr',
-    'linkedin'
-];
+    OAuth2 = require('oauth').OAuth2;
 
 var serverUrl = process.env.SERVER_URL;
 
-var singlyUrl = process.env.SINGLY_API_URL || 'https://api.singly.com',
-    singlyClientId = process.env.SINGLY_CLIENT_ID;
+// use an OAuth2 instance to handle basic OAuth dance logistics
+var singly = new OAuth2(
+    process.env.SINGLY_CLIENT_ID,
+    process.env.SINGLY_CLIENT_SECRET,
+    process.env.SINGLY_API_URL || 'https://api.singly.com'
+);
 
+// patch OAuth2 to accept relative paths and to deal with JSON in one place:
+singly.getResource = function(path, access_token, callback) {
+    this._request("GET", this._baseSite + path, {}, "", access_token, function(err, body) {
+        try {
+            body = JSON.parse(body);
+            callback(null, body);
+        } catch(parseErr) {
+            callback(parseErr);
+        }
+    });
+}
+
+// TODO: can these be fetched from Singly API using my client_id?
+var displayServices = {
+    'facebook': 'Facebook',
+    'foursquare': 'Foursquare',
+    'twitter': 'Twitter',
+    'instagram': 'Instagram',
+    'tumblr': 'Tumblr',
+    'linkedin': 'LinkedIn',
+}
+var services = Object.keys(displayServices);
+
+// TODO: use ddollar's redis-uri to tidy this up?
 var redisUrl = url.parse(process.env.REDISTOGO_URL),
     redisOptions = {
         port: redisUrl.port,
@@ -55,20 +72,35 @@ app.configure('production', function() {
    app.use(express.errorHandler());
 });
 
-app.helpers({
+// getRelativeTime(ms) and grammaticalJoin(arr,delim,lastdelim)
+var helpers = require('./helpers');
+
+// getService(item), getAuthor(item) and getPermalink(item)
+var itemHelpers = require('./item-helpers');
+
+var serviceHelpers = {
     makeAuthLink: function(service){
-        var data = {
-            client_id: singlyClientId,
-            redirect_uri: serverUrl + "/auth/singly",
-            service: service
-        };
-        return singlyUrl + "/oauth/authorize?"+querystring.stringify(data);
+        var data = { service: service, redirect_uri: serverUrl + "/auth/singly" };
+        return displayServices[service].link(singly.getAuthorizeUrl(data));
+    },
+    getDisplayName: function(service){
+        return displayServices[service];
     }
-});
+};
+
+// merge itemHelpers and serviceHelpers onto helpers:
+for (var key in itemHelpers) {
+    helpers[key] = itemHelpers[key];
+}
+for (var key in serviceHelpers) {
+    helpers[key] = serviceHelpers[key];
+}
+console.dir(helpers)
+app.helpers(helpers);
 
 app.dynamicHelpers({
     loggedIn: function(req, res) {
-        return req.session.profiles && req.session.profiles.id;
+        return req.session.access_token && req.session.profiles;
     },
     activeServices: function(req, res){
         return services.filter(function(service) { return req.session.profiles && (service in req.session.profiles); })
@@ -87,115 +119,100 @@ app.get('/', function(req, res){
     });
 });
 
-app.get('/photos', function(req, res){
+// use middleware to enforce requirements:
+function withAccessToken(req, res, next) {
     if (req.session.access_token) {
-        var page = Math.max(1, parseInt(req.param('page'),10) || 1),
-            limit = 20,
-            params = '?'+querystring.stringify({ limit: limit, offset: limit * (page-1) });
-        singly.getProtectedResource('/types/photos'+params, req.session.access_token, function(err, photosBody) {
-            try {
-                photosBody = JSON.parse(photosBody);
-            } catch(parseErr) {
-                return res.send(parseErr, 500);
-            }
-            if (photosBody.length) {
-                res.render('photos', {
-                    layout: false,
-                    locals: {
-                        whose: "your",
-                        data: photosBody,
-                        page: page,
-                        currentHref: '/photos'
-                    }
-                });
-            } else {
-                res.send("No more!", 404)
-            }
-        });
+        next();
     } else {
         res.redirect('/');
     }
+}
+
+// TODO maybe use middleware to handle pagination?
+
+app.get('/photos', withAccessToken, function(req, res){
+    var page = Math.max(1, parseInt(req.param('page'),10) || 1),
+        limit = 20,
+        params = '?'+querystring.stringify({ limit: limit, offset: limit * (page-1) });
+    singly.getResource('/types/photos'+params, req.session.access_token, function(err, items) {
+        if (err) {
+            console.err(err);
+            return res.send("Error fetching photos.", 500);
+        }
+        if (items.length) {
+            res.render('photos', {
+                layout: false,
+                locals: {
+                    whose: "your",
+                    items: items,
+                    page: page,
+                    currentHref: '/photos'
+                }
+            });
+        } else {
+            res.send("No more!", 404);
+        }
+    });
 });
 
-app.get('/photos_feed', function(req, res){
-    if (req.session.access_token) {
-        var page = Math.max(1, parseInt(req.param('page'),10) || 1),
-            limit = 20,
-            params = '?'+querystring.stringify({ limit: limit, offset: limit * (page-1) });
-        singly.getProtectedResource('/types/photos_feed'+params, req.session.access_token, function(err, photosBody) {
-            try {
-                photosBody = JSON.parse(photosBody);
-            } catch(parseErr) {
-                return res.send(parseErr, 500);
-            }
-            if (photosBody.length) {
-                res.render('photos', {
-                    layout: false,
-                    locals: {
-                        whose: "everyone's",
-                        data: photosBody,
-                        page: page,
-                        currentHref: '/photos_feed'
-                    }
-                });
-            } else {
-                res.send("No more!", 404)
-            }
-        });
-    } else {
-        res.redirect('/');
-    }
+app.get('/photos_feed', withAccessToken, function(req, res){
+    var page = Math.max(1, parseInt(req.param('page'),10) || 1),
+        limit = 20,
+        params = '?'+querystring.stringify({ limit: limit, offset: limit * (page-1) });
+    singly.getResource('/types/photos_feed'+params, req.session.access_token, function(err, items) {
+        if (err) {
+            console.err(err);
+            return res.send("Error fetching photos_feed.", 500);
+        }
+        if (items.length) {
+            res.render('photos', {
+                layout: false,
+                locals: {
+                    whose: "your contacts'",
+                    items: items,
+                    page: page,
+                    currentHref: '/photos_feed'
+                }
+            });
+        } else {
+            res.send("No more!", 404);
+        }
+    });
 });
 
 app.get('/logout', function(req, res){
     req.session.destroy(function(err,rsp) {
         if (err) {
-            res.send("problem destroying session", 500);
-        } else {
-            res.redirect('/')
+            console.err(err);
+            return res.send("problem destroying session", 500);
         }
+        res.redirect('/');
     })
 });
 
+// after we send people to Singly to auth, they come back here with a code
+// we exchange the code for a real access_token which we store in the session
+// we also ask Singly about the services this user has and put those in the
+// session as well.
 app.get('/auth/singly', function(req, res) {
+    // first get the access_token:
+    singly.getOAuthAccessToken(req.param('code'), {}, function (err, access_token, refresh_token, results) {
 
-    var data = {
-        client_id: process.env.SINGLY_CLIENT_ID,
-        client_secret: process.env.SINGLY_CLIENT_SECRET,
-        code: req.param('code')
-    };
-
-    // TODO: check for presence of code/id/secret
-
-    var params = {
-        uri: singlyUrl + '/oauth/access_token',
-        body: querystring.stringify(data),
-        headers: {
-         'Content-Type': 'application/x-www-form-urlencoded'
+        if (err) {
+            console.err(err);
+            return res.send("Error fetching access token.", 500);
         }
-    };
+        // store in the Session for later...
+        req.session.access_token = access_token;
 
-    // TODO: use the OAuth lib for this? or comment why not ;)
-    request.post(params, function (err, resp, body) {
-        try {
-            body = JSON.parse(body);
-        } catch(parseErr) {
-            return callback(parseErr);
-        }
-
-        req.session.access_token = body.access_token;
-
-        // pull down the profile and see how we're doing...
-
-        singly.getProtectedResource('/profiles', req.session.access_token, function(err, profilesBody) {
-            try {
-                profilesBody = JSON.parse(profilesBody);
-            } catch(parseErr) {
-                return res.send(parseErr, 500);
+        // now pull down the profile and see how we're doing...
+        singly.getResource('/profiles', access_token, function(err, profiles) {
+            if (err) {
+                console.err(err);
+                return res.send('Error fetching profile.', 500);
             }
-
-            req.session.profiles = profilesBody;
-
+            req.session.profiles = profiles;
+            // and back to base
             res.redirect('/');
         });
     });
