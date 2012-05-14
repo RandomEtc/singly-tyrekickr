@@ -1,21 +1,30 @@
-This is a node.js/express app for kicking the tyres on Singly's API.
+This is a node.js/express app for kicking the tyres on Singly's API. Mostly 
+cribbed from https://github.com/beaugunderson/vacatio
 
-Mostly cribbed from https://github.com/beaugunderson/vacatio
+All it does is let you log in (with Facebook, Twitter, LinkedIn, Foursquare,
+Tumblr and/or Instagram) and see photos from you or your friends in a grid.
 
-Everything is in env vars, Heroku style.
+Still using Express 2.x for quick compat with my old install of Node.
 
-You need the following settings in a `.env` file to run locally:
+Everything is in env vars, Heroku style. Assuming you have the Heroku tools 
+and Redis running with the defaults, put the following settings in a `.env`
+file and simply use `foreman start` to run locally:
 
-    SERVER_URL=http://yourapp.example.com
-    SINGLY_API_URL=https://api.singly.com
     SINGLY_CLIENT_ID=XXXXX
     SINGLY_CLIENT_SECRET=XXXXX
+    SERVER_URL=http://localhost:5000
+    SINGLY_API_URL=https://api.singly.com
     SESSION_SECRET=randomnoise
-    REDISTOGO_URL=yourredissettings
+    REDISTOGO_URL=redis://localhost:6379
 
-For Heroku, leave off the REDISTOGO_URL and enable the redistogo addon instead:
+By default this will run on http://localhost:5000 - Singly doesn't mind if you
+set up your app for a different host, so you can use your official public host
+when you create your app.
+
+For Heroku, run `heroku config:add THIS=THAT` for the above config vars, but 
+leave off the REDISTOGO_URL and enable the redistogo addon instead:
 
     heroku addons:add redistogo
 
-You can get the Singly credentials from http://dev.singly.com/
+You can your Singly app credentials from http://dev.singly.com/
 
